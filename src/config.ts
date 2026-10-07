@@ -17,7 +17,7 @@ export const config = {
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
   llmModel: process.env.LLM_MODEL || 'gpt-4o-mini',
-  adminAlertPhone: process.env.ADMIN_ALERT_PHONE || '526641085327',
+  adminAlertPhone: process.env.ADMIN_ALERT_PHONE || '526644808790',
   intakeUrl: process.env.INTAKE_URL || 'https://imagentia.com.mx/intake',
 };
 
