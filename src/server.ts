@@ -24,7 +24,8 @@ app.get('/api/leads', (_req: Request, res: Response) => {
 });
 
 app.get('/api/leads/:phone', (req: Request, res: Response) => {
-  const lead = store.getLead(req.params.phone);
+  const phone = String(req.params.phone);
+  const lead = store.getLead(phone);
   if (lead) {
     res.json(lead);
   } else {
