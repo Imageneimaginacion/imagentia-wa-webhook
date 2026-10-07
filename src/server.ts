@@ -1,9 +1,36 @@
 import express, { Request, Response } from 'express';
 import { config, validateConfig } from './config.js';
 import { handleIncomingMessage } from './whatsapp.js';
+import { store } from './store.js';
+import { getDashboardHtml } from './dashboardHtml.js';
 
 const app = express();
 app.use(express.json());
+
+// Redirección raíz al Dashboard
+app.get('/', (_req: Request, res: Response) => {
+  res.redirect('/dashboard');
+});
+
+// Dashboard visual ejecutivo
+app.get('/dashboard', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(getDashboardHtml());
+});
+
+// API REST para alimentar el Dashboard en tiempo real
+app.get('/api/leads', (_req: Request, res: Response) => {
+  res.json(store.getAllLeads());
+});
+
+app.get('/api/leads/:phone', (req: Request, res: Response) => {
+  const lead = store.getLead(req.params.phone);
+  if (lead) {
+    res.json(lead);
+  } else {
+    res.status(404).json({ error: 'Lead no encontrado' });
+  }
+});
 
 // 1. Health check
 app.get('/health', (_req: Request, res: Response) => {
