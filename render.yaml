@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: imagentia-whatsapp-webhook
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: META_VERIFY_TOKEN
+        value: "imagentia_webhook_token_2026"
+      - key: WHATSAPP_TOKEN
+        value: "EAAUaIHJ4keQBSmeD5I3MQ48G2OrvBCZAcnxfzX3ZAH2cNaDm2G30MZAzC5dX7AkZBCISZA7hZBkeJr0YEmx3qEdBfMNcCeZAdkOsdot1UZBY7hoQ0bCOBzRNc7W0clOQBCgBodcynfO3a5Dq8zdMONeKrGozG4ZBHSZC8RqB1axmXM0ZCkildxBE4spvx2ZB2jerKwZDZD"
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        value: "716474751543311"
+      - key: WHATSAPP_WABA_ID
+        value: "1407452683936580"
+      - key: ADMIN_ALERT_PHONE
+        value: "526641085327"
+      - key: INTAKE_URL
+        value: "https://imagentia.com.mx/intake"
+      - key: OPENAI_API_KEY
+        sync: false

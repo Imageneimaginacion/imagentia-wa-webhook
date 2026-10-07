@@ -1,0 +1,273 @@
+{
+  "name": "IMAGENTIA - WhatsApp B2B Consultative Closer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-get",
+      "name": "Meta Webhook Verification (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 200],
+      "webhookId": "whatsapp-meta-verify"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}"
+      },
+      "id": "node-respond-challenge",
+      "name": "Respond hub.challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [420, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-webhook",
+        "responseMode": "onReceived",
+        "responseData": "EVENT_RECEIVED",
+        "options": {}
+      },
+      "id": "node-webhook-post",
+      "name": "Meta Webhook Messages (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 420],
+      "webhookId": "whatsapp-meta-events"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-has-message",
+              "leftValue": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "node-filter-messages",
+      "name": "Filter Incoming Text",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 420]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "node-openai-model",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [660, 620]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del prospecto: {{ $('Filter Incoming Text').item.json.body.entry[0].changes[0].value.messages[0].text.body }}",
+        "hasOutputParser": false,
+        "systemMessage": "=[SYSTEM DIRECTIVE: WHATSAPP B2B CONSULTATIVE CLOSER]\n\nROL: Consultor Estratégico y Sales Engineer B2B de IMAGENTIA.\nTONO: Ejecutivo, analítico, asimétrico y profesional.\n\nDIRECTRICES INQUEBRANTABLES:\n1. NUNCA ofrezcas catálogo de servicios. Reencuadra hacia ecosistemas y consulta su cuello de botella.\n2. PROHIBIDO revelar costos o tarifas. Exige llamada de 15 minutos para mapear su proceso.\n3. El objetivo es la videollamada de 15 minutos, no el PDF. Requerimientos formales en: https://imagentia.com.mx/intake\n4. Si detectas proyecto corporativo complejo o ticket > $15,000 MXN, escala a llamada con Cristian, Director General.\n5. Cierra siempre con pregunta directa para agendar (ej. ¿Tienen disponibilidad este jueves a las 11:00 AM?).\n\nResponde en formato JSON exacto:\n{\n  \"reply\": \"texto que se enviará al WhatsApp del prospecto\",\n  \"is_hot\": true / false,\n  \"qualification\": \"HOT\" / \"QUALIFIED\" / \"LOW\",\n  \"reason\": \"diagnóstico breve\"\n}"
+      },
+      "id": "node-ai-agent",
+      "name": "AI Consultative Closer",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.text;\nlet parsed = {};\ntry {\n  const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n  parsed = JSON.parse(clean);\n} catch (e) {\n  parsed = {\n    reply: 'Para brindarle una evaluación técnica exacta, requerimos mapear su flujo operativo. ¿Tienen disponibilidad este jueves a las 11:00 AM para una videollamada de diagnóstico de 15 minutos?',\n    is_hot: false,\n    qualification: 'QUALIFIED',\n    reason: 'Fallback parse'\n  };\n}\nconst senderPhone = $('Filter Incoming Text').item.json.body.entry[0].changes[0].value.messages[0].from;\nreturn {\n  senderPhone,\n  reply: parsed.reply,\n  is_hot: parsed.is_hot,\n  qualification: parsed.qualification,\n  reason: parsed.reason\n};"
+      },
+      "id": "node-parse-output",
+      "name": "Parse Structured Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"recipient_type\": \"individual\",\n  \"to\": \"{{ $json.senderPhone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"preview_url\": true,\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}"
+      },
+      "id": "node-send-whatsapp",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-is-hot",
+              "leftValue": "={{ $('Parse Structured Output').item.json.is_hot }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        }
+      },
+      "id": "node-if-hot",
+      "name": "Is Hot Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 580]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"recipient_type\": \"individual\",\n  \"to\": \"{{ $env.ADMIN_ALERT_PHONE }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"preview_url\": true,\n    \"body\": \"🚨 *ALERTA LEAD HOT / IMAGENTIA B2B* 🚨\\n\\n• *Prospecto:* +\" + {{ JSON.stringify($('Parse Structured Output').item.json.senderPhone) }} + \"\\n• *Diagnóstico:* \" + {{ JSON.stringify($('Parse Structured Output').item.json.reason) }} + \"\\n• *Acción:* Enrutado a llamada con Dirección General (Cristian).\\n\\n_Revisar WhatsApp Business para seguimiento estratégico inmediato._\"\n  }\n}"
+      },
+      "id": "node-alert-cristian",
+      "name": "Alert Cristian (Dirección)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 580]
+    }
+  ],
+  "connections": {
+    "Meta Webhook Verification (GET)": {
+      "main": [
+        [
+          {
+            "node": "Respond hub.challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Webhook Messages (POST)": {
+      "main": [
+        [
+          {
+            "node": "Filter Incoming Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Incoming Text": {
+      "main": [
+        [
+          {
+            "node": "AI Consultative Closer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Consultative Closer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Consultative Closer": {
+      "main": [
+        [
+          {
+            "node": "Parse Structured Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Structured Output": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Hot Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Hot Lead?": {
+      "main": [
+        [
+          {
+            "node": "Alert Cristian (Dirección)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

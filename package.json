@@ -1,0 +1,25 @@
+{
+  "name": "imagentia-whatsapp-webhook",
+  "version": "1.0.0",
+  "description": "WhatsApp Cloud API Webhook Microservice with Consultative B2B Closer for IMAGENTIA",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "keywords": ["whatsapp", "b2b", "webhook", "meta-api", "imagentia"],
+  "author": "IMAGENTIA",
+  "license": "ISC"
+}
