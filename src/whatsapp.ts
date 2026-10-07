@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { config } from './config.js';
 import { processWithLLM, LLMResponse } from './llm.js';
+import { store } from './store.js';
 
 export async function sendWhatsAppMessage(to: string, text: string): Promise<any> {
   const url = `https://graph.facebook.com/v21.0/${config.whatsappPhoneId}/messages`;
@@ -61,6 +62,7 @@ export async function notifyAdminHotLead(prospectPhone: string, llmResult: LLMRe
   try {
     await sendWhatsAppMessage(config.adminAlertPhone, alertText);
     console.log(`[ESCALAMIENTO EXITOSO] Notificación enviada a Cristian (+${config.adminAlertPhone})`);
+    store.recordMessage(prospectPhone, 'system', `🚨 Escalamiento a Cristian (+${config.adminAlertPhone})`);
   } catch (err: any) {
     console.error('[ERROR NOTIFICANDO ADMIN]', err.response?.data || err.message);
   }
@@ -78,12 +80,18 @@ export async function handleIncomingMessage(message: any): Promise<void> {
 
   console.log(`[INCOMING] De: +${from} | Mensaje: "${text}"`);
 
+  // Registrar mensaje entrante del prospecto
+  store.recordMessage(from, 'prospect', text);
+
   // 1. Confirmar lectura en WhatsApp
   await markAsRead(messageId);
 
   // 2. Procesar con LLM Consultivo B2B
   const llmResult = await processWithLLM(from, text);
   console.log(`[ANALYSIS] Calificación: ${llmResult.qualification} | Es HOT: ${llmResult.is_hot}`);
+
+  // Registrar respuesta del agente en el store
+  store.recordMessage(from, 'agent', llmResult.reply, llmResult.qualification, llmResult.is_hot, llmResult.reason);
 
   // 3. Despachar respuesta consultiva al prospecto
   await sendWhatsAppMessage(from, llmResult.reply);
