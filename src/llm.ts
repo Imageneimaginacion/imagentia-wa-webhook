@@ -10,8 +10,66 @@ export interface LLMResponse {
   reason: string;
 }
 
+function runConsultativeHeuristics(userMessage: string): LLMResponse {
+  const isPrice = /precio|costo|cuanto|cotiz|tarifa|valor|presupuesto/i.test(userMessage);
+  const isMenu = /servicio|paquete|catalogo|pdf|propuesta|presentacion/i.test(userMessage);
+  const isHot = /empresa|corporat|sucursal|erp|crm|sistema|infraestructura|inversion|automatiz/i.test(userMessage);
+  const isIntake = /formulario|registro|datos|enviar info|link|intake/i.test(userMessage);
+
+  if (isIntake) {
+    return {
+      reply: `Para iniciar el levantamiento técnico formal y proteger la trazabilidad de su proyecto, por favor complete el formulario oficial de requerimientos en: ${config.intakeUrl}\n\nUna vez recibido, nuestro equipo de arquitectura estructurará el diagnóstico operativo.`,
+      is_hot: false,
+      qualification: 'QUALIFIED',
+      reason: 'Solicitud de canalización o registro técnico'
+    };
+  }
+
+  if (isPrice) {
+    return {
+      reply: 'En IMAGENTIA no comercializamos paquetes estandarizados. Cada infraestructura digital y flujo de automatización se diseña a la medida de su cuello de botella operativo. Para determinar una propuesta económica exacta, requerimos 15 minutos en videollamada de diagnóstico. ¿Tienen disponibilidad este jueves a las 11:00 AM?',
+      is_hot: isHot,
+      qualification: isHot ? 'HOT' : 'QUALIFIED',
+      reason: isHot ? 'Lead corporativo consultando inversión' : 'Objeción de precio reencuadrada a diagnóstico'
+    };
+  }
+
+  if (isMenu) {
+    return {
+      reply: 'No vendemos servicios aislados ni entregamos catálogos genéricos; desarrollamos ecosistemas integrales de captación, conversión y cumplimiento. Para evaluar la viabilidad de su caso: ¿cuál es el cuello de botella principal que enfrentan hoy en sus operaciones?',
+      is_hot: isHot,
+      qualification: isHot ? 'HOT' : 'QUALIFIED',
+      reason: 'Reencuadre de catálogo hacia diagnóstico de cuello de botella'
+    };
+  }
+
+  if (isHot) {
+    return {
+      reply: 'Por la escala de la infraestructura que mencionan, este proyecto califica para alineación técnica directa con Cristian, nuestro Director General. ¿Tienen disponibilidad mañana a las 11:00 AM para la sesión de arquitectura técnica de 15 minutos?',
+      is_hot: true,
+      qualification: 'HOT',
+      reason: 'Detección de proyecto corporativo de alto valor'
+    };
+  }
+
+  return {
+    reply: `Entendido. En IMAGENTIA optimizamos la infraestructura técnica y los flujos de crecimiento de su negocio. ¿Tienen disponibilidad este jueves a las 11:00 AM para una sesión de diagnóstico de 15 minutos, o prefieren avanzar con su levantamiento en ${config.intakeUrl} ?`,
+    is_hot: false,
+    qualification: 'QUALIFIED',
+    reason: 'Respuesta consultiva estándar con cierre forzado a llamada'
+  };
+}
+
 export async function processWithLLM(phone: string, userMessage: string): Promise<LLMResponse> {
   const history = memory.getHistory(phone);
+
+  // Si no hay API key configurada, ejecutar heurística ejecutiva directa
+  if (!config.openaiApiKey || config.openaiApiKey.trim() === '') {
+    const result = runConsultativeHeuristics(userMessage);
+    memory.addMessage(phone, 'user', userMessage);
+    memory.addMessage(phone, 'assistant', result.reply);
+    return result;
+  }
 
   const messages: Array<{ role: string; content: string }> = [
     { role: 'system', content: SYSTEM_DIRECTIVE }
@@ -56,14 +114,10 @@ export async function processWithLLM(phone: string, userMessage: string): Promis
 
     return parsed;
   } catch (error: any) {
-    console.error('[LLM ERROR]', error.response?.data || error.message);
-    // Respuesta de contingencia estrictamente alineada a la directiva
-    const fallback: LLMResponse = {
-      reply: 'Para brindarle una evaluación técnica precisa y no una estimación genérica, requerimos mapear su flujo operativo. ¿Tienen disponibilidad este jueves a las 11:00 AM para una videollamada de diagnóstico de 15 minutos?',
-      is_hot: false,
-      qualification: 'QUALIFIED',
-      reason: 'Fallback por contingencia de conexión LLM'
-    };
-    return fallback;
+    console.warn('[LLM API FALLBACK]', error.response?.data?.error?.message || error.message);
+    const result = runConsultativeHeuristics(userMessage);
+    memory.addMessage(phone, 'user', userMessage);
+    memory.addMessage(phone, 'assistant', result.reply);
+    return result;
   }
 }
