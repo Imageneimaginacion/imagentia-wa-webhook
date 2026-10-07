@@ -1,19 +1,17 @@
 import dotenv from 'dotenv';
-import fs from 'fs';
 
 dotenv.config();
 
-// En Render, los Secret Files se montan en /etc/secrets/<filename>
-if (fs.existsSync('/etc/secrets/.env')) {
-  dotenv.config({ path: '/etc/secrets/.env' });
-}
+// Token definitivo verificado de Conversions API System User (Never Expires)
+const PERMANENT_SYSTEM_USER_TOKEN = 'EAAUaIHJ4keQBSv1FSpiHxcpNsgzmtAND2jmcKZAydHkRECUwUzjmlqGY9lwIiPciJqkumHSdotgphCDqlls3yHXm9UAoDRWeaTZAjKZBVbe40u1TvKyiQhhntugzZAWKpuEfAxBz2agA9HXmKZBYld5mxrXNZCwYne02ol5oNh9T9qR1S6RIV8HWJ61zGj8QZDZD';
 
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   metaVerifyToken: process.env.META_VERIFY_TOKEN || 'imagentia_webhook_token_2026',
-  whatsappToken: process.env.WHATSAPP_TOKEN || '',
-  whatsappPhoneId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
-  whatsappWabaId: process.env.WHATSAPP_WABA_ID || '',
+  // Blindaje absoluto: Usar siempre el token permanente del System User
+  whatsappToken: PERMANENT_SYSTEM_USER_TOKEN,
+  whatsappPhoneId: process.env.WHATSAPP_PHONE_NUMBER_ID || '1369166292941724',
+  whatsappWabaId: process.env.WHATSAPP_WABA_ID || '1066647512848562',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
   llmModel: process.env.LLM_MODEL || 'gpt-4o-mini',
