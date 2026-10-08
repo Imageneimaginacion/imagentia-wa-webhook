@@ -11,10 +11,30 @@ export interface LLMResponse {
 }
 
 function runConsultativeHeuristics(userMessage: string): LLMResponse {
+  const isGreeting = /^(hola|buen(os)?\s*(d[ií]as|tardes|noches)?|qu[eé]\s*tal|saludos)/i.test(userMessage.trim());
+  const isComplaint = /bot|robot|salud|groser|direct|malo/i.test(userMessage);
   const isPrice = /precio|costo|cuanto|cotiz|tarifa|valor|presupuesto/i.test(userMessage);
   const isMenu = /servicio|paquete|catalogo|pdf|propuesta|presentacion/i.test(userMessage);
   const isHot = /empresa|corporat|sucursal|erp|crm|sistema|infraestructura|inversion|automatiz/i.test(userMessage);
   const isIntake = /formulario|registro|datos|enviar info|link|intake/i.test(userMessage);
+
+  if (isGreeting) {
+    return {
+      reply: 'Hola, ¿qué tal? Soy Ángel, Consultor Estratégico en IMAGENTIA. ¿En qué proyecto los podemos apoyar hoy?',
+      is_hot: false,
+      qualification: 'QUALIFIED',
+      reason: 'Saludo inicial cordial'
+    };
+  }
+
+  if (isComplaint) {
+    return {
+      reply: 'Tiene toda la razón, una disculpa si fui muy directo. Hola, soy Ángel de IMAGENTIA. Mi intención era entender rápido su necesidad, pero cuénteme con confianza, ¿cómo los podemos apoyar hoy?',
+      is_hot: false,
+      qualification: 'QUALIFIED',
+      reason: 'Ajuste empático ante reclamo'
+    };
+  }
 
   if (isIntake) {
     return {
@@ -93,7 +113,7 @@ export async function processWithLLM(phone: string, userMessage: string): Promis
       {
         model: config.llmModel,
         messages,
-        temperature: 0.3,
+        temperature: 0.5,
         response_format: { type: 'json_object' }
       },
       {
