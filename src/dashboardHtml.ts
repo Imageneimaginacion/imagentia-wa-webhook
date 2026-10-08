@@ -64,11 +64,11 @@ export function getDashboardHtml(): string {
     }
 
     .brand-logo-img {
-      height: 52px;
+      height: 42px;
       width: auto;
-      max-width: 220px;
+      max-width: 180px;
       object-fit: contain;
-      filter: drop-shadow(0 0 14px rgba(0, 255, 139, 0.35));
+      filter: drop-shadow(0 0 12px rgba(0, 255, 139, 0.35));
     }
 
     .brand-text-block {
@@ -861,12 +861,12 @@ export function getLoginHtml(errorMessage?: string): string {
       text-align: center;
     }
     .brand-logo-hero {
-      height: 75px;
-      width: auto;
-      max-width: 320px;
+      width: 260px;
+      height: auto;
+      max-width: 90%;
       object-fit: contain;
-      margin-bottom: 24px;
-      filter: drop-shadow(0 0 20px rgba(0, 255, 139, 0.45));
+      margin-bottom: 22px;
+      filter: drop-shadow(0 0 18px rgba(0, 255, 139, 0.45));
     }
     .brand-header {
       margin-bottom: 28px;
