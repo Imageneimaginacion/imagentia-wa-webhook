@@ -1,26 +1,33 @@
+import { IMAGENTIA_LOGO_BASE64 } from './logoBase64.js';
+
 export function getDashboardHtml(): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IMAGENTIA // Live B2B WhatsApp Conversation Hub</title>
+  <title>IMAGENTIA // Consola Operativa WhatsApp B2B</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-base: #080B11;
-      --bg-surface: #0E131F;
-      --bg-card: #141B2B;
-      --bg-card-hover: #1A2338;
-      --border-subtle: #1F293D;
-      --border-focus: #3B82F6;
-      --text-main: #F3F4F6;
+      --bg-base: #0B0D11;
+      --bg-surface: #12151B;
+      --bg-card: #181C24;
+      --bg-card-hover: #1F2430;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #00FF8B;
+      --text-main: #EDEDED;
       --text-muted: #94A3B8;
       --text-dim: #64748B;
-      --accent-gold: #D4AF37;
-      --accent-emerald: #10B981;
+      
+      /* Manual de Marca Oficial IMAGENTIA */
+      --brand-mint: #00FF8B;       /* CMYK 61, 0, 69, 0 | RGB 0, 255, 139 | HEX #00FF8B */
+      --brand-green: #00FF60;      /* CMYK 63, 0, 93, 0 | RGB 0, 255, 96  | HEX #00FF60 */
+      --brand-dark: #1C1C1C;       /* CMYK 76, 66, 60, 81 | RGB 28, 28, 28 | HEX #1C1C1C */
+      --brand-light: #EDEDED;      /* CMYK 8, 6, 7, 0 | RGB 237, 237, 237 | HEX #EDEDED */
+      
       --accent-crimson: #EF4444;
       --accent-amber: #F59E0B;
       --accent-blue: #3B82F6;
@@ -43,7 +50,7 @@ export function getDashboardHtml(): string {
     header {
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-subtle);
-      padding: 12px 24px;
+      padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -53,46 +60,66 @@ export function getDashboardHtml(): string {
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .brand-logo {
+    .brand-logo-img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 139, 0.25));
+    }
+
+    .brand-text-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
       font-weight: 800;
-      font-size: 1.15rem;
-      letter-spacing: 0.12em;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
       color: #FFFFFF;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .brand-logo span {
-      color: var(--accent-gold);
+    .brand-title span {
+      color: var(--brand-mint);
+    }
+
+    .brand-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
     }
 
     .brand-tag {
-      font-size: 0.7rem;
-      font-weight: 600;
+      font-size: 0.68rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       padding: 3px 8px;
       border-radius: 4px;
-      background: rgba(212, 175, 55, 0.12);
-      color: var(--accent-gold);
-      border: 1px solid rgba(212, 175, 55, 0.25);
+      background: rgba(0, 255, 139, 0.12);
+      color: var(--brand-mint);
+      border: 1px solid rgba(0, 255, 139, 0.3);
     }
 
     .status-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .status-pill {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       padding: 4px 10px;
       border-radius: 20px;
       background: var(--bg-card);
@@ -105,7 +132,7 @@ export function getDashboardHtml(): string {
       height: 7px;
       border-radius: 50%;
     }
-    .dot-green { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+    .dot-green { background: var(--brand-mint); box-shadow: 0 0 8px var(--brand-mint); }
     .dot-blue { background: var(--accent-blue); }
     .dot-amber { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
 
@@ -136,16 +163,19 @@ export function getDashboardHtml(): string {
     }
     .btn-secondary:hover {
       background: var(--bg-card-hover);
-      border-color: var(--text-dim);
+      border-color: var(--text-muted);
     }
 
-    .btn-gold {
-      background: rgba(212, 175, 55, 0.15);
-      color: var(--accent-gold);
-      border-color: rgba(212, 175, 55, 0.35);
+    .btn-primary-mint {
+      background: var(--brand-mint);
+      color: #0B0D11;
+      font-weight: 700;
+      border-color: var(--brand-mint);
+      box-shadow: 0 2px 10px rgba(0, 255, 139, 0.25);
     }
-    .btn-gold:hover {
-      background: rgba(212, 175, 55, 0.25);
+    .btn-primary-mint:hover {
+      background: var(--brand-green);
+      box-shadow: 0 4px 16px rgba(0, 255, 139, 0.4);
     }
 
     /* KPI Bar */
@@ -170,10 +200,11 @@ export function getDashboardHtml(): string {
     }
 
     .kpi-title {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
+      font-weight: 600;
     }
 
     .kpi-value {
@@ -201,13 +232,13 @@ export function getDashboardHtml(): string {
     }
 
     .sidebar-header {
-      padding: 14px 16px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     .filter-tabs {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       margin-bottom: 10px;
     }
 
@@ -216,8 +247,8 @@ export function getDashboardHtml(): string {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
-      padding: 6px 4px;
-      font-size: 0.7rem;
+      padding: 6px 3px;
+      font-size: 0.68rem;
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
@@ -225,13 +256,15 @@ export function getDashboardHtml(): string {
       transition: all 0.15s ease;
     }
     .filter-btn.active {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
-      color: #FFFFFF;
+      background: var(--brand-mint);
+      border-color: var(--brand-mint);
+      color: #0B0D11;
+      font-weight: 700;
     }
     .filter-btn.filter-hot.active {
       background: var(--accent-crimson);
       border-color: var(--accent-crimson);
+      color: #FFFFFF;
     }
 
     .search-box {
@@ -266,7 +299,7 @@ export function getDashboardHtml(): string {
     }
     .lead-item.selected {
       background: var(--bg-card);
-      border-left: 3px solid var(--accent-blue);
+      border-left: 3px solid var(--brand-mint);
     }
     .lead-item.selected.is-hot {
       border-left: 3px solid var(--accent-crimson);
@@ -298,11 +331,6 @@ export function getDashboardHtml(): string {
       background: rgba(239, 68, 68, 0.18);
       color: var(--accent-crimson);
       border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-    .badge-qualified {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.3);
     }
     .badge-warm {
       background: rgba(245, 158, 11, 0.18);
@@ -348,7 +376,7 @@ export function getDashboardHtml(): string {
     .chat-header {
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-subtle);
-      padding: 14px 24px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -362,17 +390,17 @@ export function getDashboardHtml(): string {
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid rgba(0, 255, 139, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      color: var(--accent-gold);
-      font-size: 0.9rem;
+      color: var(--brand-mint);
+      font-size: 0.85rem;
     }
 
     .chat-prospect-details h2 {
@@ -406,9 +434,9 @@ export function getDashboardHtml(): string {
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 4px;
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--accent-blue);
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(0, 255, 139, 0.15);
+      color: var(--brand-mint);
+      border: 1px solid rgba(0, 255, 139, 0.35);
       white-space: nowrap;
     }
 
@@ -466,9 +494,9 @@ export function getDashboardHtml(): string {
     }
 
     .msg-agent .bubble {
-      background: #0B3828;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      color: #ECFDF5;
+      background: #0A291B;
+      border: 1px solid rgba(0, 255, 139, 0.35);
+      color: #F0FDF4;
       border-bottom-right-radius: 3px;
     }
 
@@ -492,7 +520,7 @@ export function getDashboardHtml(): string {
     }
     .msg-agent .msg-info {
       justify-content: flex-end;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(0, 255, 139, 0.7);
     }
 
     .empty-state {
@@ -505,11 +533,15 @@ export function getDashboardHtml(): string {
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Top Header con Identidad Oficial IMAGENTIA -->
   <header>
     <div class="brand">
-      <div class="brand-logo">IMAGENTIA <span>//</span> B2B AGENT</div>
-      <div class="brand-tag">Autonomous Closer</div>
+      <img src="${IMAGENTIA_LOGO_BASE64}" alt="IMAGENTIA Logo" class="brand-logo-img" />
+      <div class="brand-text-block">
+        <div class="brand-title">IMAGENTIA <span>//</span> B2B</div>
+        <div class="brand-sub">Visual Identity & Digital Growth Agency</div>
+      </div>
+      <div class="brand-tag">Ángel AI Closer</div>
     </div>
 
     <div class="status-group">
@@ -521,7 +553,8 @@ export function getDashboardHtml(): string {
     <div class="header-actions">
       <a href="https://sapiix.com/login" target="_blank" class="btn btn-secondary">SAPIIX CRM ↗</a>
       <a href="https://imagentia.com.mx/intake" target="_blank" class="btn btn-secondary">Intake Form ↗</a>
-      <button onclick="refreshData()" class="btn btn-gold">⟳ Actualizar</button>
+      <button onclick="refreshData()" class="btn btn-primary-mint">⟳ Actualizar</button>
+      <button onclick="logout()" class="btn btn-secondary" title="Cerrar sesión">Salir ⎋</button>
     </div>
   </header>
 
@@ -543,15 +576,15 @@ export function getDashboardHtml(): string {
     </div>
     <div class="kpi-card">
       <div>
-        <div class="kpi-title">Cualificados B2B</div>
-        <div class="kpi-value" style="color: var(--accent-emerald);" id="kpi-qualified">0</div>
+        <div class="kpi-title">Cualificados (WARM)</div>
+        <div class="kpi-value" style="color: var(--brand-mint);" id="kpi-qualified">0</div>
       </div>
       <span style="font-size: 1.4rem;">🎯</span>
     </div>
     <div class="kpi-card">
       <div>
-        <div class="kpi-title">Blindaje Tarifas</div>
-        <div class="kpi-value" style="color: var(--accent-gold);">100%</div>
+        <div class="kpi-title">Blindaje de Marca</div>
+        <div class="kpi-value" style="color: var(--brand-mint);">100%</div>
       </div>
       <span style="font-size: 1.4rem;">🛡️</span>
     </div>
@@ -593,7 +626,7 @@ export function getDashboardHtml(): string {
                 <span id="chat-phone">+52 ...</span>
                 <span id="chat-badge" class="badge">HOT</span>
               </h2>
-              <p id="chat-status-text">Atendido de forma autónoma por GPT-4o-mini</p>
+              <p id="chat-status-text">Atendido por Ángel (Sales Engineer B2B / GPT-4o-mini)</p>
             </div>
           </div>
           <div>
@@ -626,6 +659,10 @@ export function getDashboardHtml(): string {
     async function loadData() {
       try {
         const res = await fetch('/api/leads');
+        if (res.status === 401) {
+          window.location.reload();
+          return;
+        }
         allLeads = await res.json();
         updateKPIs();
         renderLeadsList();
@@ -735,11 +772,11 @@ export function getDashboardHtml(): string {
             <div class="bubble">\${escapeHtml(msg.text)}</div>
             <div class="msg-info"><span>Prospecto</span> • <span>\${timeStr}</span></div>
           \`;
-        } else if (msg.sender === 'agent') {
+        } else if (msg.sender === 'agent' || msg.sender === 'bot') {
           group.className = 'msg-group msg-agent';
           group.innerHTML = \`
             <div class="bubble">\${escapeHtml(msg.text)}</div>
-            <div class="msg-info"><span>IMAGENTIA B2B Bot (GPT-4o-mini)</span> • <span>\${timeStr}</span> ✓✓</div>
+            <div class="msg-info"><span>Ángel (IMAGENTIA AI)</span> • <span>\${timeStr}</span> ✓✓</div>
           \`;
         } else {
           group.className = 'msg-group msg-system';
@@ -763,6 +800,11 @@ export function getDashboardHtml(): string {
       loadData();
     }
 
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.reload();
+    }
+
     // Auto-polling cada 4 segundos
     loadData();
     setInterval(loadData, 4000);
@@ -783,14 +825,15 @@ export function getLoginHtml(errorMessage?: string): string {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-base: #05070B;
-      --bg-surface: #0E131F;
-      --bg-card: #141B2B;
+      --bg-base: #0B0D11;
+      --bg-surface: #12151B;
+      --bg-card: #181C24;
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-focus: #D4AF37;
-      --text-main: #F3F4F6;
+      --border-focus: #00FF8B;
+      --brand-mint: #00FF8B;
+      --brand-green: #00FF60;
+      --text-main: #EDEDED;
       --text-muted: #94A3B8;
-      --accent-gold: #D4AF37;
       --accent-crimson: #EF4444;
       --font-sans: 'Plus Jakarta Sans', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -808,74 +851,88 @@ export function getLoginHtml(errorMessage?: string): string {
     }
     .login-card {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 36px 32px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      border-radius: 14px;
+      padding: 40px 34px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+      text-align: center;
+    }
+    .brand-logo-hero {
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 16px rgba(0, 255, 139, 0.35));
     }
     .brand-header {
-      text-align: center;
       margin-bottom: 28px;
     }
     .brand-title {
       font-size: 1.25rem;
       font-weight: 800;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       color: #FFFFFF;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-    .brand-title span { color: var(--accent-gold); }
+    .brand-title span { color: var(--brand-mint); }
     .brand-sub {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
+      font-weight: 600;
     }
     .form-group {
+      text-align: left;
       margin-bottom: 18px;
     }
     label {
       display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 0.72rem;
+      font-weight: 700;
       color: var(--text-muted);
       margin-bottom: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
     input {
       width: 100%;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       color: #FFFFFF;
-      padding: 10px 14px;
+      padding: 12px 14px;
       font-size: 0.85rem;
-      border-radius: 6px;
+      border-radius: 8px;
       outline: none;
       font-family: var(--font-sans);
-      transition: border 0.2s ease;
+      transition: all 0.2s ease;
     }
     input:focus {
       border-color: var(--border-focus);
+      box-shadow: 0 0 12px rgba(0, 255, 139, 0.2);
     }
     .btn-submit {
       width: 100%;
-      background: var(--accent-gold);
-      color: #05070B;
+      background: var(--brand-mint);
+      color: #0B0D11;
       border: none;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 0.85rem;
-      padding: 12px;
-      border-radius: 6px;
+      padding: 13px;
+      border-radius: 8px;
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      transition: opacity 0.2s ease;
-      margin-top: 10px;
+      letter-spacing: 0.08em;
+      transition: all 0.2s ease;
+      margin-top: 12px;
+      box-shadow: 0 4px 16px rgba(0, 255, 139, 0.3);
     }
-    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:hover {
+      background: var(--brand-green);
+      box-shadow: 0 6px 20px rgba(0, 255, 139, 0.5);
+    }
     .alert-error {
       background: rgba(239, 68, 68, 0.12);
       border: 1px solid rgba(239, 68, 68, 0.35);
@@ -885,23 +942,27 @@ export function getLoginHtml(errorMessage?: string): string {
       border-radius: 6px;
       margin-bottom: 18px;
       display: ${errorMessage ? 'block' : 'none'};
+      text-align: left;
     }
     .security-footer {
-      margin-top: 24px;
-      padding-top: 16px;
+      margin-top: 26px;
+      padding-top: 18px;
       border-top: 1px solid var(--border-subtle);
       text-align: center;
       font-size: 0.68rem;
-      color: #64748B;
+      color: var(--text-dim);
       font-family: var(--font-mono);
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
   <div class="login-card">
+    <img src="${IMAGENTIA_LOGO_BASE64}" alt="IMAGENTIA Logo" class="brand-logo-hero" />
+    
     <div class="brand-header">
       <div class="brand-title">IMAGENTIA <span>//</span> B2B</div>
-      <div class="brand-sub">Consola de Control Comercial</div>
+      <div class="brand-sub">Visual Identity & Digital Growth Agency</div>
     </div>
 
     <div class="alert-error" id="error-box">${errorMessage || ''}</div>
@@ -920,7 +981,7 @@ export function getLoginHtml(errorMessage?: string): string {
 
     <div class="security-footer">
       Sesión encriptada HttpOnly // 12 Horas de vigencia<br>
-      Roles: Cristian (Admin) & Ángel (Ventas)
+      Acceso: Cristian (Director) & Ángel (Ventas)
     </div>
   </div>
 
