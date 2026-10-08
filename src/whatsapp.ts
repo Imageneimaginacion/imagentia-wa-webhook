@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from './config.js';
 import { processWithLLM, LLMResponse } from './llm.js';
 import { store } from './store.js';
+import { db } from './db.js';
 
 export async function sendWhatsAppMessage(to: string, text: string): Promise<any> {
   const url = `https://graph.facebook.com/v21.0/${config.whatsappPhoneId}/messages`;
@@ -77,36 +78,56 @@ export async function notifyAdminHotLead(prospectPhone: string, llmResult: LLMRe
   }
 }
 
+/**
+ * Procesamiento de estados de mensajes de Meta (sent, delivered, read, failed)
+ */
+export async function handleStatusUpdate(status: any): Promise<void> {
+  const messageId = status.id;
+  const statusName = status.status;
+  const errorCode = status.errors?.[0]?.code ? String(status.errors[0].code) : undefined;
+
+  await db.updateMessageStatus(messageId, statusName, errorCode);
+}
+
 export async function handleIncomingMessage(message: any): Promise<void> {
   const from = message.from;
   const messageId = message.id;
   const text = message.text?.body;
 
+  // 1. Idempotencia y deduplicación: Evitar reprocesar reintentos de Meta
+  if (db.isMessageProcessed(messageId)) {
+    console.log(`[IDEMPOTENCIA] Mensaje ${messageId} ya procesado anteriormente. Omitiendo duplicado.`);
+    return;
+  }
+  db.markMessageProcessed(messageId);
+
   if (!text) {
-    console.log(`[MESSAGE IGNORED] Mensaje no contiene texto (tipo: ${message.type})`);
+    console.log(`[MESSAGE IGNORED] Mensaje no contiene texto plano (tipo: ${message.type})`);
     return;
   }
 
-  console.log(`[INCOMING] De: +${from} | Mensaje: "${text}"`);
+  // Enmascaramiento en logs de PII (los últimos 4 dígitos visibles para trazabilidad segura)
+  const maskedPhone = from.length > 4 ? `+${from.slice(0, -4)}****` : `+${from}`;
+  console.log(`[INCOMING] De: ${maskedPhone} | Mensaje: "${text}"`);
 
   // Registrar mensaje entrante del prospecto
   store.recordMessage(from, 'prospect', text);
 
-  // 1. Confirmar lectura en WhatsApp
+  // 2. Confirmar lectura en WhatsApp
   await markAsRead(messageId);
 
-  // 2. Procesar con LLM Consultivo B2B V3
+  // 3. Procesar con LLM Consultivo B2B V3
   const llmResult = await processWithLLM(from, text);
   console.log(`[ANALYSIS] Calificación: ${llmResult.qualification} | Es HOT: ${llmResult.is_hot}`);
 
   // Registrar respuesta del agente en el store
   store.recordMessage(from, 'agent', llmResult.reply, llmResult.qualification, llmResult.is_hot, llmResult.reason);
 
-  // 3. RUTA A: Despacho exclusivo al prospecto (solo conversación humana natural)
+  // 4. RUTA A: Despacho exclusivo al prospecto (solo conversación humana natural)
   await sendWhatsAppMessage(from, llmResult.reply);
-  console.log(`[RUTA A - PROSPECTO] Respuesta enviada a: +${from}`);
+  console.log(`[RUTA A - PROSPECTO] Respuesta enviada a: ${maskedPhone}`);
 
-  // 4. RUTA B: Despacho dual exclusivo a Cristian si es HOT
+  // 5. RUTA B: Despacho dual exclusivo a Cristian si es HOT
   if (llmResult.is_hot) {
     await notifyAdminHotLead(from, llmResult, text);
   }

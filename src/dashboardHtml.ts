@@ -770,3 +770,196 @@ export function getDashboardHtml(): string {
 </body>
 </html>`;
 }
+
+export function getLoginHtml(errorMessage?: string): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMAGENTIA // Acceso Consola Operativa B2B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #05070B;
+      --bg-surface: #0E131F;
+      --bg-card: #141B2B;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #D4AF37;
+      --text-main: #F3F4F6;
+      --text-muted: #94A3B8;
+      --accent-gold: #D4AF37;
+      --accent-crimson: #EF4444;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    .brand-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+    .brand-title span { color: var(--accent-gold); }
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #FFFFFF;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      outline: none;
+      font-family: var(--font-sans);
+      transition: border 0.2s ease;
+    }
+    input:focus {
+      border-color: var(--border-focus);
+    }
+    .btn-submit {
+      width: 100%;
+      background: var(--accent-gold);
+      color: #05070B;
+      border: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: opacity 0.2s ease;
+      margin-top: 10px;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .alert-error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: var(--accent-crimson);
+      font-size: 0.75rem;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 18px;
+      display: ${errorMessage ? 'block' : 'none'};
+    }
+    .security-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      font-size: 0.68rem;
+      color: #64748B;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand-header">
+      <div class="brand-title">IMAGENTIA <span>//</span> B2B</div>
+      <div class="brand-sub">Consola de Control Comercial</div>
+    </div>
+
+    <div class="alert-error" id="error-box">${errorMessage || ''}</div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Correo Institucional</label>
+        <input type="email" id="email" required placeholder="ejemplo@imagentia.com.mx" autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña Operativa</label>
+        <input type="password" id="password" required placeholder="••••••••••••">
+      </div>
+      <button type="submit" class="btn-submit" id="btn-submit">Ingresar al Sistema</button>
+    </form>
+
+    <div class="security-footer">
+      Sesión encriptada HttpOnly // 12 Horas de vigencia<br>
+      Roles: Cristian (Admin) & Ángel (Ventas)
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorBox = document.getElementById('error-box');
+      const submitBtn = document.getElementById('btn-submit');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Autenticando...';
+      errorBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          window.location.href = '/dashboard';
+        } else {
+          errorBox.innerText = data.message || 'Credenciales no autorizadas.';
+          errorBox.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Ingresar al Sistema';
+        }
+      } catch (err) {
+        errorBox.innerText = 'Error de conexión con el servidor.';
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Ingresar al Sistema';
+      }
+    });
+  </script>
+</body>
+</html>`;
+}
