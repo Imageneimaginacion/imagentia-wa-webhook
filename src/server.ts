@@ -20,6 +20,7 @@ import {
 import { getDashboardHtml, getLoginHtml } from './dashboardHtml.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // 1. Parser de Cookies httpOnly
 app.use(cookieParser());
@@ -187,11 +188,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 
   const token = createSessionToken(sessionUser);
 
-  // Cookie httpOnly, Secure en producción, SameSite=Strict, 12h
+  // Cookie httpOnly, Secure en producción, SameSite=Lax para permitir navegación fluida tras login, 12h
   res.cookie(config.sessionCookieName, token, {
     httpOnly: true,
     secure: config.nodeEnv === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
+    path: '/',
     maxAge: config.sessionDurationHours * 60 * 60 * 1000
   });
 

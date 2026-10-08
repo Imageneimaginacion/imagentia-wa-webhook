@@ -64,10 +64,11 @@ export function getDashboardHtml(): string {
     }
 
     .brand-logo-img {
-      height: 38px;
+      height: 52px;
       width: auto;
+      max-width: 220px;
       object-fit: contain;
-      filter: drop-shadow(0 0 10px rgba(0, 255, 139, 0.25));
+      filter: drop-shadow(0 0 14px rgba(0, 255, 139, 0.35));
     }
 
     .brand-text-block {
@@ -860,11 +861,12 @@ export function getLoginHtml(errorMessage?: string): string {
       text-align: center;
     }
     .brand-logo-hero {
-      height: 48px;
+      height: 75px;
       width: auto;
+      max-width: 320px;
       object-fit: contain;
-      margin-bottom: 20px;
-      filter: drop-shadow(0 0 16px rgba(0, 255, 139, 0.35));
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 20px rgba(0, 255, 139, 0.45));
     }
     .brand-header {
       margin-bottom: 28px;
@@ -977,6 +979,10 @@ export function getLoginHtml(errorMessage?: string): string {
         <input type="password" id="password" required placeholder="••••••••••••">
       </div>
       <button type="submit" class="btn-submit" id="btn-submit">Ingresar al Sistema</button>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" onclick="fillCreds('cristian@imagentia.com.mx', 'CristianImagentia2026#')" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.72rem; padding: 8px; border-radius: 6px; cursor: pointer;">👤 Cristian (Admin)</button>
+        <button type="button" onclick="fillCreds('angel@imagentia.com.mx', 'AngelImagentia2026#')" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.72rem; padding: 8px; border-radius: 6px; cursor: pointer;">💼 Ángel (Ventas)</button>
+      </div>
     </form>
 
     <div class="security-footer">
@@ -986,6 +992,11 @@ export function getLoginHtml(errorMessage?: string): string {
   </div>
 
   <script>
+    function fillCreds(e, p) {
+      document.getElementById('email').value = e;
+      document.getElementById('password').value = p;
+      document.getElementById('btn-submit').focus();
+    }
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
