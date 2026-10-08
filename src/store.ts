@@ -8,13 +8,15 @@ export interface MessageRecord {
   timestamp: string;
 }
 
+export type LeadQualification = 'HOT' | 'WARM' | 'NURTURE' | 'LOW' | 'QUALIFIED' | 'DISQUALIFIED';
+
 export interface LeadRecord {
   phone: string;
   name?: string;
   firstSeen: string;
   lastSeen: string;
   lastMessage: string;
-  qualification: 'HOT' | 'QUALIFIED' | 'LOW' | 'DISQUALIFIED';
+  qualification: LeadQualification;
   isHot: boolean;
   reason: string;
   messages: MessageRecord[];
@@ -43,6 +45,7 @@ class Store {
           this.leads.set(item.phone, item);
         }
       } else {
+        // Inicializar con historial previo de la sesión
         this.seedInitialData();
       }
     } catch (err: any) {
@@ -122,7 +125,7 @@ class Store {
           {
             id: 'seed-8',
             sender: 'agent',
-            text: 'Entiendo. Si no tienen clientes, es crucial identificar las fricciones en su proceso de captación. ¿Qué estrategias han intentado hasta ahora y cuáles han sido los principales obstáculos que han encontrado?',
+            text: 'Es el cuello de botella más común. Cuando eso pasa, el problema suele estar en la atracción o en la conversión. ¿Dónde sienten que se atoran más?',
             timestamp: '2026-10-07T17:19:59.000Z'
           }
         ]
@@ -148,7 +151,7 @@ class Store {
     phone: string,
     sender: 'prospect' | 'agent' | 'system',
     text: string,
-    qualification?: 'HOT' | 'QUALIFIED' | 'LOW' | 'DISQUALIFIED',
+    qualification?: LeadQualification,
     isHot?: boolean,
     reason?: string
   ): LeadRecord {
@@ -161,7 +164,7 @@ class Store {
         firstSeen: now,
         lastSeen: now,
         lastMessage: text,
-        qualification: qualification || 'QUALIFIED',
+        qualification: qualification || 'WARM',
         isHot: !!isHot,
         reason: reason || 'En proceso de evaluación B2B',
         escalated: !!isHot,

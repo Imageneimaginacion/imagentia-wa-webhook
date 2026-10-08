@@ -49,20 +49,29 @@ export async function markAsRead(messageId: string): Promise<void> {
   }
 }
 
+/**
+ * RUTA B: Alerta interna exclusiva al CEO (Cristian: +52 664 480 8790)
+ * Regla de oro: Jamás enviar esta alerta al número del prospecto.
+ */
 export async function notifyAdminHotLead(prospectPhone: string, llmResult: LLMResponse, originalText: string): Promise<void> {
-  if (!config.adminAlertPhone) return;
+  const targetPhone = config.adminAlertPhone || '526644808790';
 
-  const alertText = `🚨 *ALERTA LEAD HOT / IMAGENTIA B2B* 🚨\n\n` +
-    `• *Prospecto:* +${prospectPhone}\n` +
-    `• *Mensaje recibido:* "${originalText}"\n` +
-    `• *Diagnóstico:* ${llmResult.reason}\n` +
-    `• *Acción ejecutada:* Enrutado a llamada con Dirección General (Cristian).\n\n` +
-    `_Revisar WhatsApp Business para seguimiento estratégico inmediato._`;
+  // REGLA DE ORO DE PRIVACIDAD: Blindaje estricto contra fuga de metadatos
+  if (!targetPhone || targetPhone === prospectPhone) {
+    console.warn(`[DUAL DISPATCH PRIVACY GUARD] Alerta interna omitida: destinatario coincide con prospecto (+${prospectPhone})`);
+    return;
+  }
+
+  const alertText = `🚨 ALERTA LEAD HOT / IMAGENTIA B2B 🚨\n\n` +
+    `* Prospecto: +${prospectPhone}\n` +
+    `* Mensaje clave: "${originalText}"\n` +
+    `* Diagnóstico: ${llmResult.reason}\n` +
+    `* Acción ejecutada: Agendando reunión para sumarte / Revisar WhatsApp de inmediato.`;
 
   try {
-    await sendWhatsAppMessage(config.adminAlertPhone, alertText);
-    console.log(`[ESCALAMIENTO EXITOSO] Notificación enviada a Cristian (+${config.adminAlertPhone})`);
-    store.recordMessage(prospectPhone, 'system', `🚨 Escalamiento a Cristian (+${config.adminAlertPhone})`);
+    await sendWhatsAppMessage(targetPhone, alertText);
+    console.log(`[RUTA B - ALERTA INTERNA] Notificación despachada con éxito a Cristian (+${targetPhone})`);
+    store.recordMessage(prospectPhone, 'system', `🚨 Alerta interna enviada a Cristian (+${targetPhone})`);
   } catch (err: any) {
     console.error('[ERROR NOTIFICANDO ADMIN]', err.response?.data || err.message);
   }
@@ -86,18 +95,18 @@ export async function handleIncomingMessage(message: any): Promise<void> {
   // 1. Confirmar lectura en WhatsApp
   await markAsRead(messageId);
 
-  // 2. Procesar con LLM Consultivo B2B
+  // 2. Procesar con LLM Consultivo B2B V3
   const llmResult = await processWithLLM(from, text);
   console.log(`[ANALYSIS] Calificación: ${llmResult.qualification} | Es HOT: ${llmResult.is_hot}`);
 
   // Registrar respuesta del agente en el store
   store.recordMessage(from, 'agent', llmResult.reply, llmResult.qualification, llmResult.is_hot, llmResult.reason);
 
-  // 3. Despachar respuesta consultiva al prospecto
+  // 3. RUTA A: Despacho exclusivo al prospecto (solo conversación humana natural)
   await sendWhatsAppMessage(from, llmResult.reply);
-  console.log(`[REPLY SENT] A: +${from} | Respuesta: "${llmResult.reply}"`);
+  console.log(`[RUTA A - PROSPECTO] Respuesta enviada a: +${from}`);
 
-  // 4. Si es lead HOT o ticket > $15,000 MXN, notificar a Dirección
+  // 4. RUTA B: Despacho dual exclusivo a Cristian si es HOT
   if (llmResult.is_hot) {
     await notifyAdminHotLead(from, llmResult, text);
   }
